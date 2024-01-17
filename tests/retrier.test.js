@@ -74,6 +74,24 @@ describe("Retrier", () => {
             }, /Cannot catch synchronous errors/);
         });
 
+        it("should reject an error that Retrier isn't expecting after expected errors", async () => {
+
+            const retrier = new Retrier(error => error.message === "foo");
+            let callCount = 0;
+
+            await assert.rejects(async () => {
+                await retrier.retry(async () => {
+                    callCount++;
+
+                    if (callCount < 3) {
+                        throw new Error("foo");
+                    }
+
+                    throw new Error("bar");
+                });
+            }, /bar/);
+        });
+
         it("should reject an error when the function doesn't return a promise", async () => {
 
             const retrier = new Retrier(error => error.message === "foo");

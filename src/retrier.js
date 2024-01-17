@@ -246,11 +246,13 @@ export class Retrier {
             .catch(error => {
                 if (!this.#check(error)) {
                     task.reject(error);
+                    return;
                 }
 
                 // update the task timestamp and push to back of queue to try again
                 task.lastAttempt = Date.now();
                 this.#queue.push(task);
+
             })
             .finally(() => this.#processQueue());
     }
