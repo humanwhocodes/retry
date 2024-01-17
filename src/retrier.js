@@ -166,7 +166,6 @@ export class Retrier {
             throw new Error("Missing function to check errors");
         }
 
-        this.#timeout = timeout;
         this.#check = check;
         this.#timeout = timeout;
         this.#maxDelay = maxDelay;
