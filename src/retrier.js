@@ -165,7 +165,7 @@ export class Retrier {
         if (typeof check !== "function") {
             throw new Error("Missing function to check errors");
         }
-        
+
         this.#timeout = timeout;
         this.#check = check;
         this.#timeout = timeout;
@@ -179,9 +179,23 @@ export class Retrier {
      *  processed.
      */
     retry(fn) {
+
+        let result;
+
+        try {
+            result = fn();
+        } catch (error) {
+            return Promise.reject(new Error("Cannot catch synchronous errors."));
+        }
+
+        // if the result is not a promise then reject an error
+        if (!(result instanceof Promise)) {
+            return Promise.reject(new Error("Result is not a promise."));
+        }
+
         // call the original function and catch any ENFILE or EMFILE errors
         // @ts-ignore because we know it's any
-        return fn().catch(error => {
+        return result.catch(error => {
             if (!this.#check(error)) {
                 throw error;
             }
@@ -225,7 +239,6 @@ export class Retrier {
         // otherwise, try again
         task.lastAttempt = Date.now();
         task.fn()
-
             // @ts-ignore because we know it's any
             .then(result => task.resolve(result))
 
