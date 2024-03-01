@@ -8,6 +8,8 @@
         "emitDeclarationOnly": true,
         "allowJs": true,
         "checkJs": true,
+        "target": "ES2022",
+        "moduleResolution": "NodeNext",
         "outDir": "dist",
         "types": ["node"]
     }

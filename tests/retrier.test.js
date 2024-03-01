@@ -72,7 +72,7 @@ describe("Retrier", () => {
                     throw new Error("foo");
                 });
             }, {
-                message: "Cannot catch synchronous errors."
+                message: "Synchronous error: foo"
             });
         });
 

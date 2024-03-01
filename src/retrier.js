@@ -1,6 +1,9 @@
 /**
  * @fileoverview A utility for retrying failed async method calls.
  */
+
+/* global setTimeout, clearTimeout */
+
 //-----------------------------------------------------------------------------
 // Constants
 //-----------------------------------------------------------------------------
@@ -184,7 +187,8 @@ export class Retrier {
         try {
             result = fn();
         } catch (error) {
-            return Promise.reject(new Error("Cannot catch synchronous errors."));
+            // @ts-ignore TS doesn't know about the second argument to Error?
+            return Promise.reject(new Error(`Synchronous error: ${error.message}`, { cause: error }));
         }
 
         // if the result is not a promise then reject an error
