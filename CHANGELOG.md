@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/humanwhocodes/retry/compare/v0.1.2...v0.1.3) (2024-03-01)
+
+
+### Bug Fixes
+
+* Caught sync errors should throw original message ([657de9c](https://github.com/humanwhocodes/retry/commit/657de9c2c7148dccee5451f74dad901d0e2f0bc8))
+
 ## [0.1.2](https://github.com/humanwhocodes/retry/compare/v0.1.1...v0.1.2) (2024-01-17)
 
 
