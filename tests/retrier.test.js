@@ -1,7 +1,7 @@
 /**
  * @fileoverview Tests for the Retrier class.
  */
-/*global describe, it, beforeEach, afterEach*/
+/*global describe, it */
 
 //-----------------------------------------------------------------------------
 // Requirements
@@ -63,23 +63,25 @@ describe("Retrier", () => {
             assert.equal(result, 5);
         });
 
-        it("should reject an error when the function is synchronous", async () => {
+        it("should reject an error when the function is synchronous", () => {
 
             const retrier = new Retrier(error => error.message === "foo");
 
-            assert.rejects(async () => {
-                await retrier.retry(() => {
+            return assert.rejects(() => {
+                return retrier.retry(() => {
                     throw new Error("foo");
                 });
-            }, /Cannot catch synchronous errors/);
+            }, {
+                message: "Cannot catch synchronous errors."
+            });
         });
 
-        it("should reject an error that Retrier isn't expecting after expected errors", async () => {
+        it("should reject an error that Retrier isn't expecting after expected errors", () => {
 
             const retrier = new Retrier(error => error.message === "foo");
             let callCount = 0;
 
-            await assert.rejects(async () => {
+            return assert.rejects(async () => {
                 await retrier.retry(async () => {
                     callCount++;
 
@@ -92,11 +94,11 @@ describe("Retrier", () => {
             }, /bar/);
         });
 
-        it("should reject an error when the function doesn't return a promise", async () => {
+        it("should reject an error when the function doesn't return a promise", () => {
 
             const retrier = new Retrier(error => error.message === "foo");
 
-            assert.rejects(async () => {
+            return assert.rejects(async () => {
                 // @ts-expect-error
                 await retrier.retry(() => {});
             }, /Result is not a promise/);

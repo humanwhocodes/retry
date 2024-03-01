@@ -6,7 +6,6 @@ export default [
     },
     js.configs.recommended,
     {
-        globals: {},
         languageOptions: {
             globals: {
                 process: false,
