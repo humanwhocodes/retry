@@ -9,6 +9,7 @@
         "allowJs": true,
         "checkJs": true,
         "target": "ES2022",
+        "lib": ["ESNext"],
         "moduleResolution": "NodeNext",
         "outDir": "dist",
         "types": ["node"]

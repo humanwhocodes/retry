@@ -186,8 +186,7 @@ export class Retrier {
 
         try {
             result = fn();
-        } catch (error) {
-            // @ts-ignore TS doesn't know about the second argument to Error?
+        } catch (/** @type {any} */ error) {
             return Promise.reject(new Error(`Synchronous error: ${error.message}`, { cause: error }));
         }
 
