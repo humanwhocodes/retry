@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/humanwhocodes/retry/compare/retry-v0.1.3...retry-v0.2.0) (2024-03-13)
+
+
+### Features
+
+* Add JSR package ([d33c74f](https://github.com/humanwhocodes/retry/commit/d33c74f255aa4040d66344e8ef049ebc3ae41d6a))
+
+
+### Bug Fixes
+
+* **docs:** make release-please happy ([27fa920](https://github.com/humanwhocodes/retry/commit/27fa920a5ae7d59eae2e6b8ef1c6c323fefd0c86))
+
 ## [0.1.3](https://github.com/humanwhocodes/retry/compare/v0.1.2...v0.1.3) (2024-03-01)
 
 
