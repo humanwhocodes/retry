@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/humanwhocodes/retry/compare/retry-v0.2.1...retry-v0.2.2) (2024-03-13)
+
+
+### Bug Fixes
+
+* **ci:** Ensure dist is built for JSR publish ([42b5f6a](https://github.com/humanwhocodes/retry/commit/42b5f6a90f995dcb35e8e2520d25250a6aa356b0))
+
 ## [0.2.1](https://github.com/humanwhocodes/retry/compare/retry-v0.2.0...retry-v0.2.1) (2024-03-13)
 
 
