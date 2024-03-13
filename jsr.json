@@ -1,0 +1,5 @@
+{
+  "name": "@humanwhocodes/retry",
+  "version": "0.1.3",
+  "exports": "./dist/retrier.js"
+}

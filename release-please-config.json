@@ -1,0 +1,16 @@
+{
+  "bootstrap-sha": "1397defe50396b964a57aaaff491e4936d235fd5",
+  "bump-minor-pre-major": true,
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "deno.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}
