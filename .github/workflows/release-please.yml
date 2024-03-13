@@ -40,7 +40,9 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
 
       - name: Publish to JSR
-        run: npx jsr publish
+        run: |
+          npm run build
+          npx jsr publish
         if: ${{ steps.release.outputs.release_created }}
 
       # Tweets out release announcement
