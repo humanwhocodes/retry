@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/humanwhocodes/retry/compare/retry-v0.2.0...retry-v0.2.1) (2024-03-13)
+
+
+### Bug Fixes
+
+* **ci:** Add token to enable publishing ([9ba5d3c](https://github.com/humanwhocodes/retry/commit/9ba5d3c75970b84ac22a5628dda37e40c5184707))
+
 ## [0.2.0](https://github.com/humanwhocodes/retry/compare/retry-v0.1.3...retry-v0.2.0) (2024-03-13)
 
 
