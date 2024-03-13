@@ -6,7 +6,7 @@ If you find this useful, please consider supporting my work with a [donation](ht
 
 ## Description
 
-A utility for retrying a failed async JavaScript call based on the error returned.
+A utility for retrying failed async JavaScript calls based on the error returned.
 
 ## Usage
 
