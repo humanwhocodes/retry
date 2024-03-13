@@ -34,12 +34,21 @@ import { Retrier } from "@humanwhocodes/retry";
 
 ### Deno
 
-Import into your Deno project:
+Install using [JSR](https://jsr.io):
 
-```js
-import { Retrier } from "https://cdn.skypack.dev/@humanwhocodes/retry?dts";
+```shell
+deno add @humanwhocodes/retry
+
+#or
+
+jsr add @humanwhocodes/retry
 ```
 
+Then import into your Deno project:
+
+```js
+import { Retrier } from "@humanwhocodes/retry";
+```
 
 ### Bun
 
