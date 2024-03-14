@@ -1,5 +1,14 @@
 {
   "name": "@humanwhocodes/retry",
   "version": "0.2.2",
-  "exports": "./dist/retrier.js"
+  "exports": "./dist/retrier.js",
+  "publish": {
+    "include": [
+      "jsr.json",
+      "LICENSE",
+      "README.md",
+      "dist/retrier.js",
+      "dist/retrier.d.ts"
+    ]
+  }
 }
