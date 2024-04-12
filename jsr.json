@@ -1,6 +1,6 @@
 {
   "name": "@humanwhocodes/retry",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "exports": "./dist/retrier.js",
   "publish": {
     "include": [

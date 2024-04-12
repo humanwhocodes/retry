@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/humanwhocodes/retry/compare/retry-v0.2.2...retry-v0.2.3) (2024-04-12)
+
+
+### Bug Fixes
+
+* Order of exports in package.json to appease tools ([7f6ab10](https://github.com/humanwhocodes/retry/commit/7f6ab107b933ddb9053b6037045119a5879eadba))
+
 ## [0.2.2](https://github.com/humanwhocodes/retry/compare/retry-v0.2.1...retry-v0.2.2) (2024-03-13)
 
 
