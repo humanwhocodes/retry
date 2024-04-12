@@ -8,12 +8,12 @@
   "types": "dist/retrier.d.ts",
   "exports": {
     "require": {
-      "default": "./dist/retrier.cjs",
-      "types": "./dist/retrier.d.ts"
+      "types": "./dist/retrier.d.ts",
+      "default": "./dist/retrier.cjs"
     },
     "import": {
-      "default": "./dist/retrier.js",
-      "types": "./dist/retrier.d.ts"
+      "types": "./dist/retrier.d.ts",
+      "default": "./dist/retrier.js"
     }
   },
   "files": [
