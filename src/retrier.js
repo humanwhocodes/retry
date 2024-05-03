@@ -191,13 +191,13 @@ export class Retrier {
         }
 
         // if the result is not a promise then reject an error
-        if (!(result instanceof Promise)) {
+        if (!result || typeof result.then !== "function") {
             return Promise.reject(new Error("Result is not a promise."));
         }
 
         // call the original function and catch any ENFILE or EMFILE errors
         // @ts-ignore because we know it's any
-        return result.catch(error => {
+        return Promise.resolve(result).catch(error => {
             if (!this.#check(error)) {
                 throw error;
             }
@@ -240,7 +240,9 @@ export class Retrier {
 
         // otherwise, try again
         task.lastAttempt = Date.now();
-        task.fn()
+        
+        // Promise.resolve needed in case it's a thenable but not a Promise
+        Promise.resolve(task.fn())
             // @ts-ignore because we know it's any
             .then(result => task.resolve(result))
 

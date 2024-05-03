@@ -46,6 +46,33 @@ describe("Retrier", () => {
             assert.equal(result, 2);
         });
 
+        it("should retry a function that rejects an error using a non-Promise thenable", async () => {
+
+            let count = 0;
+            const retrier = new Retrier(error => error.message === "foo");
+            const result = await retrier.retry(() => {
+                count++;
+
+                if (count === 1) {
+                    return {
+                        then() {
+                            throw new Error("foo");
+                        }
+                    };
+                }
+
+                return {
+                    then(fn) {
+                        fn(count);
+                    }
+                };
+            });
+
+            assert.equal(result, 2);
+        });
+
+
+
         it("should retry a function that rejects an error multiple times", async () => {
 
             let count = 0;
