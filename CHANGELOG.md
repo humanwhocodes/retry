@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/humanwhocodes/retry/compare/retry-v0.2.3...retry-v0.2.4) (2024-05-03)
+
+
+### Bug Fixes
+
+* Allow retrying with non-Promise thenables ([70f33c0](https://github.com/humanwhocodes/retry/commit/70f33c05fc665a58c6b2d6fbf8300101eecd7558))
+
 ## [0.2.3](https://github.com/humanwhocodes/retry/compare/retry-v0.2.2...retry-v0.2.3) (2024-04-12)
 
 
