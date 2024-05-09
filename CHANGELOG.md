@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/humanwhocodes/retry/compare/retry-v0.2.4...retry-v0.3.0) (2024-05-09)
+
+
+### Features
+
+* Allow canceling of retry using AbortSignal ([#25](https://github.com/humanwhocodes/retry/issues/25)) ([e877140](https://github.com/humanwhocodes/retry/commit/e877140bcf28f9d2196a1099b40531ac66e69143))
+
+
+### Bug Fixes
+
+* Ensure proper types for npm and JSR ([d9eb568](https://github.com/humanwhocodes/retry/commit/d9eb568b71d82934f059cc97f590f077f0b58053))
+
 ## [0.2.4](https://github.com/humanwhocodes/retry/compare/retry-v0.2.3...retry-v0.2.4) (2024-05-03)
 
 
