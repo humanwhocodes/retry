@@ -149,7 +149,9 @@ describe("Retrier", () => {
         it("should cancel a function when an AbortSignal times out", async () => {
 
             let count = 0;
-            const retrier = new Retrier(error => error.message === "foo");
+            const retrier = new Retrier(error => error.message === "foo", {
+                maxDelay: 500
+            });
             await assert.rejects(async () => {
                 await retrier.retry(async () => {
                     count++;
@@ -167,7 +169,9 @@ describe("Retrier", () => {
 
             let count = 0;
             const controller = new AbortController();
-            const retrier = new Retrier(error => error.message === "foo");
+            const retrier = new Retrier(error => error.message === "foo", {
+                maxDelay: 500
+            });
 
             setTimeout(() => {
                 controller.abort();
