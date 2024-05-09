@@ -101,19 +101,27 @@ class RetryTask {
     reject;
 
     /**
+     * The AbortSignal to monitor for cancellation.
+     * @type {AbortSignal|undefined}
+     */
+    signal;
+
+    /**
      * Creates a new instance.
      * @param {Function} fn The function to call.
      * @param {Error} error The error that was thrown.
      * @param {Function} resolve The resolve function for the promise.
      * @param {Function} reject The reject function for the promise.
+     * @param {AbortSignal|undefined} signal The AbortSignal to monitor for cancellation.
      */
-    constructor(fn, error, resolve, reject) {
+    constructor(fn, error, resolve, reject, signal) {
         this.fn = fn;
         this.error = error;
         this.timestamp = Date.now();
         this.lastAttempt = Date.now();
         this.resolve = resolve;
         this.reject = reject;
+        this.signal = signal;
     }
     
 }
@@ -177,10 +185,14 @@ export class Retrier {
     /**
      * Adds a new retry job to the queue.
      * @param {Function} fn The function to call.
+     * @param {object} [options] The options for the job.
+     * @param {AbortSignal} [options.signal] The AbortSignal to monitor for cancellation.
      * @returns {Promise<any>} A promise that resolves when the queue is
      *  processed.
      */
-    retry(fn) {
+    retry(fn, { signal } = {}) {
+
+        signal?.throwIfAborted();
 
         let result;
 
@@ -203,7 +215,12 @@ export class Retrier {
             }
 
             return new Promise((resolve, reject) => {
-                this.#queue.push(new RetryTask(fn, error, resolve, reject));
+                this.#queue.push(new RetryTask(fn, error, resolve, reject, signal));
+
+                signal?.addEventListener("abort", () => {
+                    reject(signal.reason);
+                });
+
                 this.#processQueue();
             });
         });
