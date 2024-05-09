@@ -8,7 +8,7 @@
   "types": "dist/retrier.d.ts",
   "exports": {
     "require": {
-      "types": "./dist/retrier.d.ts",
+      "types": "./dist/retrier.d.cts",
       "default": "./dist/retrier.cjs"
     },
     "import": {
@@ -38,7 +38,9 @@
     "url": "https://github.com/sponsors/nzakas"
   },
   "scripts": {
-    "build": "rollup -c && tsc",
+    "build:cts-types": "node -e \"fs.copyFileSync('dist/retrier.d.ts', 'dist/retrier.d.cts')\"",
+    "build:prepend-type-ref": "node tools/prepend-type-ref.js dist/retrier.js",
+    "build": "rollup -c && tsc && npm run build:prepend-type-ref && npm run build:cts-types",
     "prepare": "npm run build",
     "lint": "eslint src/ tests/",
     "pretest": "npm run build",
