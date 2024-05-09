@@ -1,7 +1,7 @@
 /**
  * @fileoverview Tests for the Retrier class.
  */
-/*global describe, it */
+/*global describe, it, AbortSignal, AbortController, setTimeout */
 
 //-----------------------------------------------------------------------------
 // Requirements
@@ -71,8 +71,6 @@ describe("Retrier", () => {
             assert.equal(result, 2);
         });
 
-
-
         it("should retry a function that rejects an error multiple times", async () => {
 
             let count = 0;
@@ -129,6 +127,63 @@ describe("Retrier", () => {
                 // @ts-expect-error
                 await retrier.retry(() => {});
             }, /Result is not a promise/);
+        });
+
+        it("should cancel a function when an AbortSignal starts out aborted", async () => {
+
+            let count = 0;
+            const retrier = new Retrier(error => error.message === "foo");
+            await assert.rejects(async () => {
+                await retrier.retry(async () => {
+                    count++;
+
+                    if (count < 5) {
+                        throw new Error("foo");
+                    }
+
+                    return count;
+                }, { signal: AbortSignal.abort()});
+            }, /AbortError/);
+        });
+
+        it("should cancel a function when an AbortSignal times out", async () => {
+
+            let count = 0;
+            const retrier = new Retrier(error => error.message === "foo");
+            await assert.rejects(async () => {
+                await retrier.retry(async () => {
+                    count++;
+
+                    if (count < 5) {
+                        throw new Error("foo");
+                    }
+
+                    return count;
+                }, { signal: AbortSignal.timeout(100)});
+            }, /TimeoutError/);
+        });
+
+        it("should cancel a function when an AbortSignal is triggered", async () => {
+
+            let count = 0;
+            const controller = new AbortController();
+            const retrier = new Retrier(error => error.message === "foo");
+
+            setTimeout(() => {
+                controller.abort();
+            }, 100);
+
+            await assert.rejects(async () => {
+                await retrier.retry(async () => {
+                    count++;
+
+                    if (count < 5) {
+                        throw new Error("foo");
+                    }
+
+                    return count;
+                }, { signal: controller.signal });
+            }, /AbortError/);
         });
 
     });
