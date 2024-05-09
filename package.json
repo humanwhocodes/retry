@@ -1,6 +1,6 @@
 {
   "name": "@humanwhocodes/retry",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "A utility to retry failed async methods.",
   "type": "module",
   "main": "dist/retrier.cjs",
