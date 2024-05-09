@@ -149,9 +149,7 @@ describe("Retrier", () => {
         it("should cancel a function when an AbortSignal times out", async () => {
 
             let count = 0;
-            const retrier = new Retrier(error => error.message === "foo", {
-                maxDelay: 500
-            });
+            const retrier = new Retrier(error => error.message === "foo");
             await assert.rejects(async () => {
                 await retrier.retry(async () => {
                     count++;
@@ -161,7 +159,7 @@ describe("Retrier", () => {
                     }
 
                     return count;
-                }, { signal: AbortSignal.timeout(100)});
+                }, { signal: AbortSignal.timeout(0)});
             }, /TimeoutError/);
         });
 
@@ -175,7 +173,7 @@ describe("Retrier", () => {
 
             setTimeout(() => {
                 controller.abort();
-            }, 100);
+            }, 0);
 
             await assert.rejects(async () => {
                 await retrier.retry(async () => {
