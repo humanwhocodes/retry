@@ -14,7 +14,8 @@ export default [
             },
             {
                 file: "dist/retrier.js",
-                format: "esm"
+                format: "esm",
+                banner: "// @ts-self-types=\"./retrier.d.ts\""
             }
         ]
     },
