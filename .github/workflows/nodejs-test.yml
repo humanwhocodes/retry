@@ -3,7 +3,7 @@ name: Node CI
 on: [push, pull_request]
 
 jobs:
-  build:
+  test:
 
     runs-on: ${{ matrix.os }}
 
@@ -25,3 +25,5 @@ jobs:
         npm test
       env:
         CI: true
+    - name: JSR Publish Test  
+      run: npm run test:jsr
