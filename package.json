@@ -50,7 +50,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/humanwhocodes/retrier.git"
+    "url": "git+https://github.com/humanwhocodes/retry.git"
   },
   "keywords": [
     "nodejs",
