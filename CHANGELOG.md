@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/humanwhocodes/retry/compare/retry-v0.3.0...retry-v0.3.1) (2024-10-04)
+
+
+### Bug Fixes
+
+* Long retries ([#35](https://github.com/humanwhocodes/retry/issues/35)) ([c551b31](https://github.com/humanwhocodes/retry/commit/c551b31963c1fe29a3a84d8f5be7c6ac93732e64))
+* repository url in package.json ([#30](https://github.com/humanwhocodes/retry/issues/30)) ([739480c](https://github.com/humanwhocodes/retry/commit/739480c2a04221464f1245d76b97939c723b8fa9))
+
 ## [0.3.0](https://github.com/humanwhocodes/retry/compare/retry-v0.2.4...retry-v0.3.0) (2024-05-09)
 
 
