@@ -56,7 +56,7 @@ function isTimeToRetry(task, maxDelay) {
  * @returns {boolean} true if it is time to bail, false otherwise.
  */
 function isTimeToBail(task, timeout) {
-    return Date.now() - task.timestamp > timeout;
+    return task.age > timeout;
 }
 
 
@@ -64,6 +64,13 @@ function isTimeToBail(task, timeout) {
  * A class to represent a task in the retry queue.
  */
 class RetryTask {
+
+    /**
+     * The unique ID for the task.
+     * @type {string}
+     */
+    id = Math.random().toString(36).slice(2);
+
     /**
      * The function to call.
      * @type {Function}
@@ -124,6 +131,14 @@ class RetryTask {
         this.signal = signal;
     }
     
+    /**
+     * Gets the age of the task.
+     * @returns {number} The age of the task in milliseconds.
+     * @readonly
+     */
+    get age() {
+        return Date.now() - this.timestamp;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -134,6 +149,7 @@ class RetryTask {
  * A class that manages a queue of retry jobs.
  */
 export class Retrier {
+
     /**
      * Represents the queue for processing tasks.
      * @type {Array<RetryTask>}
@@ -240,18 +256,21 @@ export class Retrier {
         if (!task) {
             return;
         }
+        const processAgain = () => {
+            this.#timerId = setTimeout(() => this.#processQueue(), 0);
+        };
 
         // if it's time to bail, then bail
         if (isTimeToBail(task, this.#timeout)) {
             task.reject(task.error);
-            this.#processQueue();
+            processAgain();
             return;
         }
 
         // if it's not time to retry, then wait and try again
         if (!isTimeToRetry(task, this.#maxDelay)) {
-            this.#queue.unshift(task);
-            this.#timerId = setTimeout(() => this.#processQueue(), 0);
+            this.#queue.push(task);
+            processAgain();
             return;
         }
 
