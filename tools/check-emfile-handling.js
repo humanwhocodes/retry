@@ -9,6 +9,8 @@
 
 import fs from "node:fs";
 import { readFile } from "node:fs/promises";
+import os from "node:os";
+import { execSync } from "node:child_process";
 import { Retrier } from "../src/retrier.js";
 
 //------------------------------------------------------------------------------
@@ -16,7 +18,35 @@ import { Retrier } from "../src/retrier.js";
 //------------------------------------------------------------------------------
 
 const OUTPUT_DIRECTORY = "tmp/emfile-check";
-const FILE_COUNT = 15000;
+
+/*
+ * Every operating system has a different limit for the number of files that can
+ * be opened at once. This number is meant to be larger than the default limit
+ * on most systems.
+ *
+ * Linux systems typically start at a count of 1024 and may be increased to 4096.
+ * MacOS Sonoma v14.4 has a limit of 10496.
+ * Windows has no hard limit but may be limited by available memory.
+ */
+const DEFAULT_FILE_COUNT = 15000;
+let FILE_COUNT = DEFAULT_FILE_COUNT;
+
+// if the platform isn't windows, get the ulimit to see what the actual limit is
+if (os.platform() !== "win32") {
+    try {
+        FILE_COUNT = parseInt(execSync("ulimit -n").toString().trim(), 10) + 1;
+
+        console.log(`Detected Linux file limit of ${FILE_COUNT}.`);
+
+        // if we're on a Mac, make sure the limit isn't high enough to cause a call stack error
+        if (os.platform() === "darwin") {
+            FILE_COUNT = Math.min(FILE_COUNT, 100000);
+        }
+    } catch {
+
+        // ignore error and use default
+    }
+}
 
 /**
  * Generates files in a directory.
