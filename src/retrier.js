@@ -5,15 +5,24 @@
 /* global setTimeout, clearTimeout */
 
 //-----------------------------------------------------------------------------
+// Imports
+//-----------------------------------------------------------------------------
+
+import createDebug from "debug";
+
+//-----------------------------------------------------------------------------
 // Constants
 //-----------------------------------------------------------------------------
 
 const MAX_TASK_TIMEOUT = 60000;
 const MAX_TASK_DELAY = 100;
+const MAX_CONCURRENCY = 1000;
 
 //-----------------------------------------------------------------------------
 // Helpers
 //-----------------------------------------------------------------------------
+
+const debug = createDebug("retrier");
 
 /*
  * The following logic has been extracted from graceful-fs.
@@ -57,6 +66,29 @@ function isTimeToRetry(task, maxDelay) {
  */
 function isTimeToBail(task, timeout) {
     return task.age > timeout;
+}
+
+/**
+ * Creates a new promise with resolve and reject functions.
+ * @returns {{promise:Promise<any>, resolve:(value:any) => any, reject: (value:any) => any}} A new promise.
+ */
+function createPromise() {
+    if (Promise.withResolvers) {
+        return Promise.withResolvers();
+    }
+
+    let resolve, reject;
+
+    const promise = new Promise((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
+
+    if (resolve === undefined || reject === undefined) {
+        throw new Error("Promise executor did not initialize resolve or reject.");
+    }
+
+    return { promise, resolve, reject };
 }
 
 
@@ -154,7 +186,19 @@ export class Retrier {
      * Represents the queue for processing tasks.
      * @type {Array<RetryTask>}
      */
-    #queue = [];
+    #retrying = [];
+
+    /**
+     * Represents the queue for pending tasks.
+     * @type {Array<Function>}
+     */
+    #pending = [];
+
+    /**
+     * The number of tasks currently being processed.
+     * @type {number}
+     */
+    #working = 0;
 
     /**
      * The timeout for the queue.
@@ -181,13 +225,20 @@ export class Retrier {
     #check;
 
     /**
+     * The maximum number of concurrent tasks.
+     * @type {number}
+     */
+    #concurrency;
+
+    /**
      * Creates a new instance.
      * @param {Function} check The function to call.
      * @param {object} [options] The options for the instance.
      * @param {number} [options.timeout] The timeout for the queue.
      * @param {number} [options.maxDelay] The maximum delay for the queue.
+     * @param {number} [options.concurrency] The maximum number of concurrent tasks.
      */
-    constructor(check, { timeout = MAX_TASK_TIMEOUT, maxDelay = MAX_TASK_DELAY } = {}) {
+    constructor(check, { timeout = MAX_TASK_TIMEOUT, maxDelay = MAX_TASK_DELAY, concurrency = MAX_CONCURRENCY } = {}) {
 
         if (typeof check !== "function") {
             throw new Error("Missing function to check errors");
@@ -196,6 +247,97 @@ export class Retrier {
         this.#check = check;
         this.#timeout = timeout;
         this.#maxDelay = maxDelay;
+        this.#concurrency = concurrency;
+    }
+
+    /**
+     * Gets the number of tasks waiting to be retried.
+     * @returns {number} The number of tasks in the retry queue.
+     * @readonly
+     */
+    get retrying() {
+        return this.#retrying.length;
+    }
+
+    /**
+     * Gets the number of tasks waiting to be processed in the pending queue.
+     * @returns {number} The number of tasks in the pending queue.
+     * @readonly
+     */
+    get pending() {
+        return this.#pending.length;
+    }
+
+    /**
+     * Gets the number of tasks currently being processed.
+     * @returns {number} The number of tasks currently being processed.
+     * @readonly
+     */
+    get working() {
+        return this.#working;
+    }
+
+    /**
+     * Calls the function and retries if it fails.
+     * @param {Function} fn The function to call.
+     * @param {Object} options The options for the job.
+     * @param {AbortSignal} [options.signal] The AbortSignal to monitor for cancellation.
+     * @param {Promise<any>} options.promise The promise to return when the function settles.
+     * @param {Function} options.resolve The resolve function for the promise.
+     * @param {Function} options.reject The reject function for the promise.
+     * @returns {Promise<any>} A promise that resolves when the function is
+     * called successfully.
+     */
+    #call(fn, { signal, promise, resolve, reject }) {
+
+        let result;
+
+        try {
+            result = fn();
+        } catch (/** @type {any} */ error) {
+            reject(new Error(`Synchronous error: ${error.message}`, { cause: error }));
+            return promise;
+        }
+
+        // if the result is not a promise then reject an error
+        if (!result || typeof result.then !== "function") {
+            reject(new Error("Result is not a promise."));
+            return promise;
+        }
+
+        this.#working++;
+
+        // call the original function and catch any ENFILE or EMFILE errors
+        // @ts-ignore because we know it's any
+        return Promise.resolve(result)
+            .then(value => {
+                debug("Function called successfully without retry.");
+                this.#working--;
+                this.#processPending();
+                resolve(value);
+                return promise;
+            })
+            .catch(error => {
+                if (!this.#check(error)) {
+                    this.#working--;
+                    reject(error);
+                    return promise;
+                }
+
+                const task = new RetryTask(fn, error, resolve, reject, signal);
+                
+                debug(`Function failed, queuing for retry with task ${task.id}.`);
+                this.#retrying.push(task);
+
+                signal?.addEventListener("abort", () => {
+                    debug(`Task ${task.id} was aborted due to AbortSignal.`);
+                    reject(signal.reason);
+                });
+
+                this.#processQueue();
+
+                return promise;
+            });
     }
 
     /**
@@ -210,36 +352,27 @@ export class Retrier {
 
         signal?.throwIfAborted();
 
-        let result;
+        const { promise, resolve, reject } = createPromise();
 
-        try {
-            result = fn();
-        } catch (/** @type {any} */ error) {
-            return Promise.reject(new Error(`Synchronous error: ${error.message}`, { cause: error }));
+        this.#pending.push(() => this.#call(fn, { signal, promise, resolve, reject }));
+        this.#processPending();
+        
+        return promise;
+    }
+
+    /**
+     * Processes the pending queue to see which tasks can be started.
+     * @returns {void}
+     */
+    #processPending() {
+
+        debug(`Processing pending tasks: ${this.pending} pending, ${this.working} working.`);
+        while (this.pending > 0 && this.working < this.#concurrency) {
+            const task = this.#pending.shift();
+            task?.();
         }
 
-        // if the result is not a promise then reject an error
-        if (!result || typeof result.then !== "function") {
-            return Promise.reject(new Error("Result is not a promise."));
-        }
-
-        // call the original function and catch any ENFILE or EMFILE errors
-        // @ts-ignore because we know it's any
-        return Promise.resolve(result).catch(error => {
-            if (!this.#check(error)) {
-                throw error;
-            }
-
-            return new Promise((resolve, reject) => {
-                this.#queue.push(new RetryTask(fn, error, resolve, reject, signal));
-
-                signal?.addEventListener("abort", () => {
-                    reject(signal.reason);
-                });
-
-                this.#processQueue();
-            });
-        });
+        debug(`Processed pending tasks: ${this.pending} pending, ${this.working} working.`);
     }
 
     /**
@@ -251,17 +384,30 @@ export class Retrier {
         clearTimeout(this.#timerId);
         this.#timerId = undefined;
 
+        debug(`Processing retry queue: ${this.retrying} retrying, ${this.working} working.`);
+
+        const processAgain = () => {
+            this.#timerId = setTimeout(() => {
+                this.#processPending();
+                this.#processQueue();
+            }, 0);
+        };
+
         // if there's nothing in the queue, we're done
-        const task = this.#queue.shift();
+        const task = this.#retrying.shift();
         if (!task) {
+            debug("Queue is empty, exiting.");
+
+            if (this.pending) {
+                processAgain();
+            }
             return;
         }
-        const processAgain = () => {
-            this.#timerId = setTimeout(() => this.#processQueue(), 0);
-        };
 
         // if it's time to bail, then bail
         if (isTimeToBail(task, this.#timeout)) {
+            this.#working--;
+            debug(`Task ${task.id} was abandoned due to timeout.`);
             task.reject(task.error);
             processAgain();
             return;
@@ -269,7 +415,8 @@ export class Retrier {
 
         // if it's not time to retry, then wait and try again
         if (!isTimeToRetry(task, this.#maxDelay)) {
-            this.#queue.push(task);
+            debug(`Task ${task.id} is not ready to retry, skipping.`);
+            this.#retrying.push(task);
             processAgain();
             return;
         }
@@ -280,20 +427,29 @@ export class Retrier {
         // Promise.resolve needed in case it's a thenable but not a Promise
         Promise.resolve(task.fn())
             // @ts-ignore because we know it's any
-            .then(result => task.resolve(result))
+            .then(result => {
+                this.#working--;
+                debug(`Task ${task.id} succeeded after ${task.age}ms.`);
+                task.resolve(result);
+            })
 
             // @ts-ignore because we know it's any
             .catch(error => {
                 if (!this.#check(error)) {
+                    this.#working--;
+                    debug(`Task ${task.id} failed with non-retryable error: ${error.message}.`);
                     task.reject(error);
                     return;
                 }
 
                 // update the task timestamp and push to back of queue to try again
                 task.lastAttempt = Date.now();
-                this.#queue.push(task);
-
+                this.#retrying.push(task);
+                debug(`Task ${task.id} failed, requeueing to try again.`);
             })
-            .finally(() => this.#processQueue());
+            .finally(() => {
+                this.#processPending();
+                this.#processQueue();
+            });
     }
 }
