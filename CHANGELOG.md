@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/humanwhocodes/retry/compare/retry-v0.3.1...retry-v0.4.0) (2024-10-31)
+
+
+### Features
+
+* Implement concurrency ([#38](https://github.com/humanwhocodes/retry/issues/38)) ([330552f](https://github.com/humanwhocodes/retry/commit/330552f6545197d902d19b143e94bd09cd6e6852))
+
 ## [0.3.1](https://github.com/humanwhocodes/retry/compare/retry-v0.3.0...retry-v0.3.1) (2024-10-04)
 
 
