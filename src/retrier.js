@@ -256,7 +256,6 @@ export class Retrier {
     /**
      * Gets the number of tasks waiting to be retried.
      * @returns {number} The number of tasks in the retry queue.
-     * @readonly
      */
     get retrying() {
         return this.#retrying.length;
@@ -265,7 +264,6 @@ export class Retrier {
     /**
      * Gets the number of tasks waiting to be processed in the pending queue.
      * @returns {number} The number of tasks in the pending queue.
-     * @readonly
      */
     get pending() {
         return this.#pending.length;
@@ -274,7 +272,6 @@ export class Retrier {
     /**
      * Gets the number of tasks currently being processed.
      * @returns {number} The number of tasks currently being processed.
-     * @readonly
      */
     get working() {
         return this.#working;
