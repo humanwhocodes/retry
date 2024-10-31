@@ -74,8 +74,5 @@
     "rollup": "3.29.4",
     "typescript": "5.4.4",
     "yorkie": "2.0.0"
-  },
-  "dependencies": {
-    "debug": "^4.3.7"
   }
 }

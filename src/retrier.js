@@ -5,12 +5,6 @@
 /* global setTimeout, clearTimeout */
 
 //-----------------------------------------------------------------------------
-// Imports
-//-----------------------------------------------------------------------------
-
-import createDebug from "debug";
-
-//-----------------------------------------------------------------------------
 // Constants
 //-----------------------------------------------------------------------------
 
@@ -22,7 +16,16 @@ const MAX_CONCURRENCY = 1000;
 // Helpers
 //-----------------------------------------------------------------------------
 
-const debug = createDebug("retrier");
+/**
+ * Logs a message to the console if the DEBUG environment variable is set.
+ * @param {string} message The message to log.
+ * @returns {void}
+ */
+function debug(message) {
+    if (globalThis?.process?.env.DEBUG) {
+        console.log(message);
+    }
+}
 
 /*
  * The following logic has been extracted from graceful-fs.
@@ -306,20 +309,21 @@ export class Retrier {
         }
 
         this.#working++;
+        promise.finally(() => {
+            this.#working--;
+            this.#processPending();
+        });
 
         // call the original function and catch any ENFILE or EMFILE errors
         // @ts-ignore because we know it's any
         return Promise.resolve(result)
             .then(value => {
                 debug("Function called successfully without retry.");
-                this.#working--;
-                this.#processPending();
                 resolve(value);
                 return promise;
             })
             .catch(error => {
                 if (!this.#check(error)) {
-                    this.#working--;
                     reject(error);
                     return promise;
                 }
@@ -360,6 +364,21 @@ export class Retrier {
         return promise;
     }
 
+
+    /**
+     * Processes the pending queue and the retry queue.
+     * @returns {void}
+     */
+    #processAll() {
+        if (this.pending) {
+            this.#processPending();
+        }
+
+        if (this.retrying) {
+            this.#processQueue();
+        }
+    }
+
     /**
      * Processes the pending queue to see which tasks can be started.
      * @returns {void}
@@ -367,7 +386,16 @@ export class Retrier {
     #processPending() {
 
         debug(`Processing pending tasks: ${this.pending} pending, ${this.working} working.`);
-        while (this.pending > 0 && this.working < this.#concurrency) {
+
+        const available = this.#concurrency - this.working;
+
+        if (available <= 0) {
+            return;
+        }
+
+        const count = Math.min(this.pending, available);
+
+        for (let i = 0; i < count; i++) {
             const task = this.#pending.shift();
             task?.();
         }
@@ -387,10 +415,7 @@ export class Retrier {
         debug(`Processing retry queue: ${this.retrying} retrying, ${this.working} working.`);
 
         const processAgain = () => {
-            this.#timerId = setTimeout(() => {
-                this.#processPending();
-                this.#processQueue();
-            }, 0);
+            this.#timerId = setTimeout(() => this.#processAll(), 0);
         };
 
         // if there's nothing in the queue, we're done
@@ -406,7 +431,6 @@ export class Retrier {
 
         // if it's time to bail, then bail
         if (isTimeToBail(task, this.#timeout)) {
-            this.#working--;
             debug(`Task ${task.id} was abandoned due to timeout.`);
             task.reject(task.error);
             processAgain();
@@ -428,7 +452,6 @@ export class Retrier {
         Promise.resolve(task.fn())
             // @ts-ignore because we know it's any
             .then(result => {
-                this.#working--;
                 debug(`Task ${task.id} succeeded after ${task.age}ms.`);
                 task.resolve(result);
             })
@@ -436,7 +459,6 @@ export class Retrier {
             // @ts-ignore because we know it's any
             .catch(error => {
                 if (!this.#check(error)) {
-                    this.#working--;
                     debug(`Task ${task.id} failed with non-retryable error: ${error.message}.`);
                     task.reject(error);
                     return;
@@ -448,8 +470,7 @@ export class Retrier {
                 debug(`Task ${task.id} failed, requeueing to try again.`);
             })
             .finally(() => {
-                this.#processPending();
-                this.#processQueue();
+                this.#processAll();
             });
     }
 }

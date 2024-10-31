@@ -216,6 +216,32 @@ describe("Retrier", () => {
                 }
             });
 
+            it("should retry 100 functions that that don't reject an error with concurrency", async () => {
+                    
+                const retrier = new Retrier(error => error.message === "foo", {
+                    concurrency: 5
+                });
+
+                const values = Array.from({ length: 10000 }, (_, i) => i);
+                const promises = [];
+                for (const value of values) {
+                    promises.push(retrier.retry(async () => value));
+                }
+
+                assert.strictEqual(retrier.working, 5);
+                assert.strictEqual(retrier.pending, 9995);
+                assert.strictEqual(retrier.retrying, 0);
+                
+                const results = await Promise.all(promises);
+                assert.strictEqual(retrier.working, 0);
+                assert.strictEqual(retrier.pending, 0);
+                assert.strictEqual(retrier.retrying, 0);
+
+                for (let i = 0; i < 100; i++) {
+                    assert.strictEqual(results[i], i);
+                }
+            });
+
             it("should retry a function until it throws an unknown error", async () => {
 
                 let count1 = 0;
@@ -255,8 +281,7 @@ describe("Retrier", () => {
 
                 assert.strictEqual(result1, 2);
                 assert.strictEqual(result2, 3);
-            });            
-
+            });
         });
 
         describe("Errors", () => {
