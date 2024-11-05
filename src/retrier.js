@@ -22,8 +22,8 @@ const MAX_CONCURRENCY = 1000;
  * @returns {void}
  */
 function debug(message) {
-    if (globalThis?.process?.env.DEBUG) {
-        console.log(message);
+    if (globalThis?.process?.env.DEBUG === "@hwc/retry") {
+        console.debug(message);
     }
 }
 
