@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/humanwhocodes/retry/compare/retry-v0.4.0...retry-v0.4.1) (2024-11-05)
+
+
+### Bug Fixes
+
+* Look for specific DEBUG value before outputting debug messages ([#40](https://github.com/humanwhocodes/retry/issues/40)) ([be263df](https://github.com/humanwhocodes/retry/commit/be263df56058a2ff0ee5a6db6fceb1903335ad80))
+
 ## [0.4.0](https://github.com/humanwhocodes/retry/compare/retry-v0.3.1...retry-v0.4.0) (2024-10-31)
 
 
