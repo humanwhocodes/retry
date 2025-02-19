@@ -1,7 +1,7 @@
 /**
  * @fileoverview Tests for the Retrier class.
  */
-/*global describe, it, AbortSignal, AbortController, setTimeout */
+/* global beforeEach, afterEach, describe, it, AbortSignal, AbortController, setTimeout */
 
 //-----------------------------------------------------------------------------
 // Requirements
@@ -28,6 +28,24 @@ describe("Retrier", () => {
     });
 
     describe("retry()", () => {
+
+        let caughtUnhandledRejection;
+
+        function unhandledRejectionListener(err) {
+            caughtUnhandledRejection = err;
+        }
+
+        beforeEach(() => {
+            process.addListener("unhandledRejection", unhandledRejectionListener);
+            caughtUnhandledRejection = null;
+        });
+
+        afterEach(() => {
+            process.removeListener("unhandledRejection", unhandledRejectionListener);
+
+            // Ensure that no unhandled promise rejection has occurred.
+            assert.ifError(caughtUnhandledRejection);
+        });
         
         it("should retry a function that rejects an error", async () => {
 
