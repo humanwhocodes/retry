@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/humanwhocodes/retry/compare/retry-v0.4.1...retry-v0.4.2) (2025-02-19)
+
+
+### Bug Fixes
+
+* handle rejections from temporary promises ([#44](https://github.com/humanwhocodes/retry/issues/44)) ([f59810b](https://github.com/humanwhocodes/retry/commit/f59810b52defa25422430c1d4a48a379173df359))
+
 ## [0.4.1](https://github.com/humanwhocodes/retry/compare/retry-v0.4.0...retry-v0.4.1) (2024-11-05)
 
 
