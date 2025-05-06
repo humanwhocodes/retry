@@ -343,11 +343,12 @@ export class Retrier {
 
     /**
      * Adds a new retry job to the queue.
-     * @param {Function} fn The function to call.
+     * @template {(...args: unknown[]) => Promise<unknown>} T
+     * @template {Awaited<ReturnType<T>>} R
+     * @param {T} fn The function to call.
      * @param {object} [options] The options for the job.
      * @param {AbortSignal} [options.signal] The AbortSignal to monitor for cancellation.
-     * @returns {Promise<any>} A promise that resolves when the queue is
-     *  processed.
+     * @returns {Promise<R>} A promise that resolves when the queue is processed.
      */
     retry(fn, { signal } = {}) {
 
