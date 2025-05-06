@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/humanwhocodes/retry/compare/retry-v0.4.2...retry-v0.4.3) (2025-05-06)
+
+
+### Bug Fixes
+
+* improve type def for Retrier.retry ([#46](https://github.com/humanwhocodes/retry/issues/46)) ([f385ddb](https://github.com/humanwhocodes/retry/commit/f385ddb50b447208c771f20642fc3cead3d12611))
+
 ## [0.4.2](https://github.com/humanwhocodes/retry/compare/retry-v0.4.1...retry-v0.4.2) (2025-02-19)
 
 
