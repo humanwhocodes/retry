@@ -347,6 +347,72 @@ describe("Retrier", () => {
 
         describe("AbortSignal", () => {
 
+            it("should not call a queued retry again after aborting", async () => {
+                const controller = new AbortController();
+                const reason = new Error("Cancelled");
+                const retrier = new Retrier(() => true, {
+                    concurrency: 1,
+                    timeout: 200,
+                    maxDelay: 10
+                });
+                let count = 0;
+                const promise = retrier.retry(async () => {
+                    count++;
+                    if (controller.signal.aborted) {
+                        return count;
+                    }
+                    throw new Error("Retry me");
+                }, { signal: controller.signal });
+
+                for (let turn = 0; retrier.retrying === 0 && turn < 100; turn++) {
+                    await Promise.resolve();
+                }
+                assert.strictEqual(retrier.retrying, 1);
+                const countAtAbort = count;
+                const rejection = assert.rejects(promise, error => error === reason);
+                controller.abort(reason);
+                await rejection;
+
+                // An uncancelled retry makes the queue advance past the aborted task.
+                let liveCount = 0;
+                const value = await retrier.retry(async () => {
+                    if (++liveCount === 1) {
+                        throw new Error("Retry me too");
+                    }
+                    return "done";
+                });
+
+                assert.strictEqual(value, "done");
+                assert.strictEqual(liveCount, 2);
+                assert.strictEqual(count, countAtAbort);
+                assert.strictEqual(retrier.retrying, 0);
+                assert.strictEqual(retrier.working, 0);
+            });
+
+            it("should not retry when aborted before the first failure", async () => {
+                const controller = new AbortController();
+                const reason = new Error("Cancelled");
+                const retrier = new Retrier(() => true);
+                let rejectFirst;
+                const firstAttempt = new Promise((resolve, reject) => {
+                    rejectFirst = reject;
+                });
+                let count = 0;
+                const promise = retrier.retry(() => {
+                    count++;
+                    return count === 1 ? firstAttempt : Promise.resolve("unexpected");
+                }, { signal: controller.signal });
+                const rejection = assert.rejects(promise, error => error === reason);
+
+                controller.abort(reason);
+                rejectFirst(new Error("Retry me"));
+                await rejection;
+
+                assert.strictEqual(count, 1);
+                assert.strictEqual(retrier.retrying, 0);
+                assert.strictEqual(retrier.working, 0);
+            });
+
             it("should cancel a function when an AbortSignal starts out aborted", async () => {
 
                 let count = 0;
