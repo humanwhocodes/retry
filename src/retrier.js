@@ -427,6 +427,12 @@ export class Retrier {
             return;
         }
 
+        if (task.signal?.aborted) {
+            task.reject(task.signal.reason);
+            processAgain();
+            return;
+        }
+
         // if it's time to bail, then bail
         if (isTimeToBail(task, this.#timeout)) {
             debug(`Task ${task.id} was abandoned due to timeout.`);

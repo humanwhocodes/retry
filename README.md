@@ -154,6 +154,10 @@ const text = await retrier.retry(
 );
 ```
 
+For calls queued for retry, aborting rejects with the signal's reason and prevents
+further attempts. It does not interrupt a function call that is already running.
+Pass the signal to the underlying operation as well if it supports cancellation.
+
 ## Developer Setup
 
 1. Fork the repository
